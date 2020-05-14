@@ -1,0 +1,267 @@
+﻿ExitProgram=keyboard.F9
+
+//make Wiimote LEDs cycle
+if true then
+  Wiimote.Led1 = true
+  wait (250ms)
+  Wiimote.Led1 = false
+  Wiimote.Led2 = true
+  wait (250ms)
+  Wiimote.Led2 = false
+  Wiimote.Led3 = true
+  wait (250ms)
+  Wiimote.Led3 = false
+  Wiimote.Led4 = true
+  wait (250ms)
+  Wiimote.Led4 = false
+endif
+
+
+// Script to convert walking steps to key presses
+// Designed for Active Life mat layout
+
+// Button Mapping using TigerGame 3-in-1 XBOX+PS@+GC Game Controller Adapter
+// 12 = Blue Left
+// 11 = Blue Square
+// 1 = Orange Square
+// 4 = Orange Right
+// 10 = Blue Down
+// 7 = Orange Down
+// 8 = Blue Up
+// 2 = Orange Up
+// 9 = Minus
+// 3 = Plus
+
+// Letters used in pattern matching
+// H = Blue Left
+// J = Blue Square
+// K = Orange Square
+// L = Orange Right
+// N = Blue Down
+// M = Orange Down
+// U = Blue Up
+// I = Orange Up
+
+
+
+// Swallow the keys so the games don't see them
+Swallow Joystick.Button12
+Swallow Joystick.Button11
+Swallow Joystick.Button1
+Swallow Joystick.Button4
+Swallow Joystick.Button10
+Swallow Joystick.Button7
+Swallow Joystick.Button8
+Swallow Joystick.Button2
+
+
+//this lets the nunchuck control the camera instead of the mouse
+mouse.x += (DeadZone(Nunchuk.JoyX, 5%)/50)
+mouse.y += (DeadZone(Nunchuk.JoyY, 5%)/50)
+//the divided by varies the speed. The bigger the number the slower the cursor will move.
+
+//Setup button mapping
+mouse.LeftButton = wiimote.Shake OR wiimote.A
+mouse.LeftButton = Joystick.Button4
+mouse.RightButton = nunchuck.C
+mouse.RightButton =  joystick.Button12
+key.q = wiimote.1 // throws an item to give
+key.m = wiimote.2 //interacts with the map plugin
+Keyboard.I = wiimote.Plus
+keyboard.Shift = nunchuck.Z
+key.Escape = wiimote.Home
+key.Tab = wiimote.a & wiimote.B
+key.F5  = wiimote.B
+key.X = joystick.Button3
+key.T = joystick.Button9
+key.F3 = wiimote.Minus
+key.7 = wiimote.Up
+key.3 = wiimote.Down
+
+// Allows for scrolling through the inventory quickrow
+mouse.wheeldown = wiimote.right
+mouse.wheelup = wiimote.left
+// ^^^^  allows for scrolling through the inventory quickrow
+
+//Fix for A+B to be Tab and not click the mouse at the same time
+if wiimote.a == true and wiimote.b == true then
+   mouse.LeftButton = false
+endif
+
+///////////////////////////////////BEGIN DANCEMAT CODE
+
+if Joystick.Button11 == true && var.B11isPressed == false then
+  var.B11isPressed = true
+  var.recent4 = var.recent3
+  var.recent3 = var.recent2
+  var.recent2 = var.recent1
+  var.recent1 = "J"
+  var.stepcount = var.stepcount+1
+  var.BlueTimer = RemoveUnits(TimeStamp)
+endif
+if Joystick.Button11 == false && var.B11isPressed == true then
+  var.B11isPressed = false
+endif
+
+if Joystick.Button1 == true && var.B01isPressed == false then
+  var.B01isPressed = true
+  var.recent4 = var.recent3
+  var.recent3 = var.recent2
+  var.recent2 = var.recent1
+  var.recent1 = "K"
+  var.stepcount = var.stepcount+1
+  var.OrangeTimer = RemoveUnits(TimeStamp)
+endif
+if Joystick.Button1 == false && var.B01isPressed == true then
+  var.B01isPressed = false
+endif
+
+//Commented out to remove walking backwards buttons for our customized mat
+/*
+if Joystick.Button12 == true && var.B12isPressed == false then
+  var.B12isPressed = true
+  var.recent4 = var.recent3
+  var.recent3 = var.recent2
+  var.recent2 = var.recent1
+  var.stepcount = var.stepcount+1
+  var.recent1 = "H"
+endif
+
+if Joystick.Button12 == false && var.B12isPressed == true then
+  var.B12isPressed = false
+endif
+
+if Joystick.Button4 == true && var.B04isPressed == false then
+  var.B04isPressed = true
+  var.recent4 = var.recent3
+  var.recent3 = var.recent2
+  var.recent2 = var.recent1
+  var.stepcount = var.stepcount+1
+  var.recent1 = "L"
+endif
+
+if Joystick.Button4 == false && var.B04isPressed == true then
+  var.B04isPressed = false
+endif
+*/
+//^^^^ Commented out to remove walking backwards buttons for our customized mat
+
+if Joystick.Button8 == true && var.B08isPressed == false then
+  var.B08isPressed = true
+  var.recent4 = var.recent3
+  var.recent3 = var.recent2
+  var.recent2 = var.recent1
+  var.stepcount = var.stepcount+1
+  var.recent1 = "U"
+  var.BlueTimer = RemoveUnits(TimeStamp)
+endif
+if Joystick.Button8 == false && var.B08isPressed == true then
+  var.B08isPressed = false
+endif
+
+if Joystick.Button2 == true && var.B02isPressed == false then
+  var.B02isPressed = true
+  var.recent4 = var.recent3
+  var.recent3 = var.recent2
+  var.recent2 = var.recent1
+  var.stepcount = var.stepcount+1
+  var.recent1 = "I"
+  var.OrangeTimer = RemoveUnits(TimeStamp)
+endif
+if Joystick.Button2 == false && var.B02isPressed == true then
+  var.B02isPressed = false
+endif
+
+
+// Set the Pattern variables to the list of recent buttons
+var.pattern = var.recent4 + var.recent3 + var.recent2 + var.recent1
+var.patternShort = var.recent3 + var.recent2 + var.recent1
+
+// This is used to correct the problem of lifting one foot causing involuntary movement
+if var.patternOld != var.pattern then
+  var.patternOld = var.pattern
+  var.patternTimer = RemoveUnits(TimeStamp)
+endif
+
+// Check Walking-Forward pattern
+if var.patternShort == "JKJ" || var.patternShort == "KJK" || var.patternShort == "KLJ" || var.patternShort == "LJK" || var.patternShort == "JHK" || var.patternShort == "HKJ" || var.patternShort == "NMJ" || var.patternShort == "MNK" then
+  // They are walking
+  var.movement = "Forward"
+endif
+
+// Check Walking-Left pattern
+if var.patternShort == "HJH" || var.patternShort == "JHJ" || var.pattern == "KJKH" || var.pattern == "JKHJ" then
+  // They are walking-Left
+  var.movement = "Left"
+endif
+
+// Check Walking-Right pattern
+if var.patternShort == "KLK" || var.patternShort == "LKL" || var.pattern == "JKJL" || var.pattern = "KJLK" then
+  // They are walking-Right
+  var.movement = "Right"
+endif
+
+//Commented out to remove walking backwards buttons for our customized mat
+/*
+// Check Walking-Back pattern
+if var.patternShort == "NMN" || var.patternShort == "MNM" || var.patternShort == "KNM" || var.patternShort = "JMN" || var.patternShort == "KJM" || var.patternShort == "JKN" then
+  // They are walking-Back
+  var.movement = "Back"
+endif
+*/
+
+// Check Jumping pattern
+if var.patternShort == "UIU" || var.patternShort == "IUI" || var.patternShort == "JKU" || var.patternShort = "KJI" then
+  // They are Jumping
+  var.movement = "Jumping"
+endif
+
+// Check Jumping-Forward pattern
+if var.pattern == "JKUI" || var.pattern == "KUIJ" || var.pattern == "UIJK" || var.pattern == "IJKU" || var.pattern == "KJIU" || var.pattern == "JIUK" || var.pattern == "IUKJ" || var.pattern == "UKJI" then
+  // They are Jumping-Forward
+  var.movement = "JumpingForward"
+endif
+
+//Check if standing still
+if HeldDown(Joystick.Button11, 250ms) && HeldDown(Joystick.Button1, 250ms) then
+  var.movement = false
+endif
+if HeldDown(Joystick.Button12, 250ms) && HeldDown(Joystick.Button11, 250ms) then
+  var.movement = false
+endif
+if HeldDown(Joystick.Button1, 250ms) && HeldDown(Joystick.Button4, 250ms) then
+  var.movement = false
+endif
+if HeldDown(Joystick.Button8, 250ms) && HeldDown(Joystick.Button2, 250ms) then
+  var.movement = false
+endif
+if Joystick.Button12 == false && Joystick.Button11 == false && Joystick.Button1 == false && Joystick.Button4 == false && Joystick.Button8 == false && Joystick.Button2 == false then
+  var.movement = false
+endif
+
+// Checks if the pattern has changed in the previous 1 second, if not then they aren't moving
+if RemoveUnits(TimeStamp)-var.patternTimer >= 1 then
+  var.movement = false
+endif
+
+// Sprinting code for 1.7
+if |(var.BlueTimer-var.OrangeTimer)| >= .2 then
+  key.LeftControl = false
+endif
+
+if |(var.BlueTimer-var.OrangeTimer)| <= .2 then
+   key.LeftControl = true
+endif
+
+//What to display in the debug line in GlovePie
+//debug = var.movement
+debug = var.stepcount
+
+//Set the keyboard buttons based on their movement status
+key.w = var.movement == "Forward"
+key.a = var.movement == "Left"
+key.d = var.movement == "Right"
+key.s = var.movement == "Back"
+key.space = var.movement == "Jumping"
+key.space + key.w = var.movement == "JumpingForward"
+'key.LeftControl + key.W = var.movement == "Sprinting"
